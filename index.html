@@ -32,11 +32,11 @@ button:disabled{opacity:.4}
 .top .big{font-size:22px;color:var(--gold)}
 .m{background:var(--ring);border:3px solid var(--paper);border-radius:6px;margin-bottom:10px;overflow:hidden}
 .m.mine{border-color:var(--gold);box-shadow:0 0 0 3px #f5c54255}
-.side{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:8px 12px;position:relative}
+.side{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:8px 12px;position:relative}
 .side+.side{border-top:3px solid var(--bg)}
 .side .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .side .pts{font:22px Bungee,Impact,sans-serif;text-align:right;display:flex;gap:8px;align-items:center;justify-content:flex-end}
-.bar{grid-column:1/3;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar{grid-column:1/4;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--red);transition:width .25s}
 .side:nth-child(2) .bar i{background:var(--blue)}
 .side.win{background:#f5c54226}.side.win .nm::before{content:"\1F451 "}
@@ -51,7 +51,7 @@ button:disabled{opacity:.4}
 .score{font:84px/1 Bungee,Impact,sans-serif;color:var(--paper)}
 .tl{height:10px;background:var(--bg);border-radius:5px;margin:10px 0 16px;overflow:hidden}.tl i{display:block;height:100%;background:var(--gold);width:100%}
 .btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.btns button{height:150px;font-size:64px;border-radius:10px}
+.btns button{height:124px;font-size:64px;border-radius:10px}
 .hint{color:var(--mut);font-weight:700}
 .champ{text-align:center;padding:24px 10px}
 .champ .big{font-size:30px;color:var(--gold);word-break:break-word}
@@ -60,6 +60,26 @@ button:disabled{opacity:.4}
 #splat b{position:absolute;font-size:150px;line-height:1;filter:drop-shadow(0 0 6px #7a0d05);animation:sp .25s ease-out}
 @keyframes sp{from{transform:scale(2.5);opacity:0}to{transform:scale(1);opacity:1}}
 @media (prefers-reduced-motion:reduce){#splat b{animation:none}.bar i{transition:none}}
+.stage{height:96px;border-radius:8px;margin-bottom:10px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 18% 0,#f5c54277,transparent 45%),radial-gradient(ellipse at 82% 0,#2f7bff88,transparent 45%),#0a1030;border:3px solid var(--paper)}
+.stage:after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:46px;background:radial-gradient(circle at 12px 30px,#26357f 0 11px,transparent 12px) 0 0/26px 40px repeat-x,radial-gradient(circle at 25px 42px,#141d4d 0 12px,transparent 13px) 0 0/26px 40px repeat-x}
+.stage .big{position:absolute;inset:14px 0 0;display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--gold);text-shadow:3px 3px 0 var(--red);z-index:1}
+.stage small{position:absolute;top:6px;left:0;right:0;text-align:center;font-weight:700;z-index:1}
+.f{width:44px;height:48px;flex:none}
+.f .gl,.f .gr{transition:transform .08s}
+.f.pL .gl{transform:translate(11px,-12px)}.f.pR .gr{transform:translate(-11px,-12px)}
+.f.idle .gl,.f.idle .gr{transform:none}
+.f.big{width:96px;height:104px}
+.emo{display:flex;gap:6px;justify-content:center;margin-top:14px}
+.fe{position:fixed;bottom:90px;font-size:40px;z-index:7;pointer-events:none;animation:fl 2s ease-out forwards}
+@keyframes fl{to{transform:translateY(-60vh) rotate(20deg);opacity:0}}
+.chat{max-height:140px;overflow:auto;margin-bottom:10px;font-size:14px;-webkit-user-select:text;user-select:text}
+.bag{width:100%;height:84px;font-size:36px;background:#7a3b1d;border:3px solid var(--paper)}
+.bag span{font-size:22px;margin-left:12px}.bag.hit{animation:sw .12s}
+@keyframes sw{50%{transform:rotate(-2deg) scale(.98)}}
+.star{position:fixed;z-index:6;font-size:40px;background:var(--gold);border-radius:50%;width:72px;height:72px;padding:0}
+.cf{position:fixed;top:-14px;width:9px;height:14px;z-index:7;pointer-events:none;animation:cfa 3s linear forwards}
+@keyframes cfa{to{transform:translateY(105vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){.cf,.fe,.bag.hit{animation:none}.cf{display:none}}
 </style>
 </head>
 <body>
@@ -70,6 +90,8 @@ button:disabled{opacity:.4}
 const PFX='spamroyale-gh-',MAX=10,BET=25,SAB=10;
 const TITLES=['Grandmaster Spammer','Carpal Tunnel King','Finger of Fury','Button Basher','Thumb Lord','Mash Messiah'];
 const BOTS=['Botty McMash','Clickatron','NPC Nick','Turbo Tim','Gizmo','Sir Taps-a-Lot','Mashbot 9000','Dave'];
+const MODS=[{n:'Classic',d:5,d2:'Standard 5-second brawl'},{n:'Sprint',d:3,d2:'Only 3 seconds. Go go go!'},{n:'Marathon',d:8,d2:'8 seconds. Pace yourself'},{n:'Blind Rage',d:5,blind:1,d2:'Scores are hidden until the bell'}];
+const EMOS=['🔥','👏','😂','💀','😱','🙌'];
 const $=s=>document.querySelector(s);
 let peer,isHost=false,hc=null,conns={},S=null,me={id:null,name:''},loc={score:0,last:null},err='',busy=false,lastPh='',phAt=0,padKey='',timers=[],iv=0;
 let code=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
@@ -100,6 +122,8 @@ function hmsg(c,m){const id=c.peer;
   else if(m.t==='sc')setSc(id,m.n);
   else if(m.t==='bet')bet(id,m.target);
   else if(m.t==='sab')sab(id,m.target);
+  else if(m.t==='emo')emo(id,m.e);
+  else if(m.t==='chat')chat(id,m.x);
 }
 function drop(id){delete conns[id];if(!S)return;if(S.phase==='lobby')S.players=S.players.filter(p=>p.id!==id);else P(id).gone=true;bc()}
 function setSc(id,n){if(S.phase!=='spam'&&S.phase!=='collect')return;n=Math.min(Math.max(+n||0,0),250);
@@ -109,6 +133,8 @@ function bet(id,t){if(S.phase!=='bracket'||inMatch(id)||!S.alive.includes(t))ret
   if(p.coins>=BET){p.coins-=BET;S.bets[id]=t}bc()}
 function sab(id,t){if(S.phase!=='spam'||inMatch(id)||!inMatch(t))return;const p=P(id);if(p.coins<SAB)return;p.coins-=SAB;
   const m={t:'splat',target:t,from:id};for(const k in conns)conns[k].open&&conns[k].send(m);splat(m);bc()}
+function emo(id,e){if(!EMOS.includes(e))return;const m={t:'emo',e,from:id};for(const k in conns)conns[k].open&&conns[k].send(m);floatEmo(m)}
+function chat(id,x){x=String(x||'').slice(0,80).trim();if(!x)return;S.chat=((S.chat||[]).concat({id,x})).slice(-30);bc()}
 function addBot(){if(S.players.length>=MAX)return;const n=S.players.filter(p=>p.bot).length;
   S.players.push({id:'bot'+Date.now(),name:BOTS[n%BOTS.length],coins:100,wins:0,title:'',bot:1});bc()}
 function startT(){S.players=S.players.filter(p=>!p.gone);if(S.players.length<2)return;
@@ -116,11 +142,11 @@ function startT(){S.players=S.players.filter(p=>!p.gone);if(S.players.length<2)r
 function nextRound(){
   S.round++;const a=shuffle(S.alive);S.matches=[];S.byes=[];
   for(let i=0;i<a.length;i+=2)a[i+1]?S.matches.push({a:a[i],b:a[i+1],sa:0,sb:0,w:null}):S.byes.push(a[i]);
-  S.alive=a;S.rname=a.length===2?'GRAND FINAL':a.length<=4?'SEMIFINALS':'ROUND '+S.round;S.phase='bracket';bc();
+  S.alive=a;S.mod=S.round===1?MODS[0]:MODS[Math.floor(Math.random()*MODS.length)];S.rname=a.length===2?'GRAND FINAL':a.length<=4?'SEMIFINALS':'ROUND '+S.round;S.phase='bracket';bc();
   at(()=>{S.phase='countdown';bc();
-    at(()=>{S.phase='spam';const t0=Date.now();S.players.forEach(p=>{if(p.bot)p.target=28+Math.floor(Math.random()*22)});bc();
-      iv=setInterval(()=>{setSc(me.id,loc.score);S.players.forEach(p=>{if(p.bot)setSc(p.id,Math.round(p.target*Math.min(1,(Date.now()-t0)/5000)))});bc()},250);
-      at(()=>{clearInterval(iv);S.phase='collect';bc();at(resolve,900)},5000)},3200)},a.length===2?8000:4500);
+    at(()=>{S.phase='spam';const t0=Date.now();S.players.forEach(p=>{if(p.bot)p.target=Math.round((28+Math.floor(Math.random()*22))*S.mod.d/5)});bc();
+      iv=setInterval(()=>{setSc(me.id,loc.score);S.players.forEach(p=>{if(p.bot)setSc(p.id,Math.round(p.target*Math.min(1,(Date.now()-t0)/(S.mod.d*1000))))});bc()},250);
+      at(()=>{clearInterval(iv);S.phase='collect';bc();at(resolve,900)},S.mod.d*1000)},3200)},a.length===2?8000:4500);
 }
 function resolve(){
   setSc(me.id,loc.score);const win=[];
@@ -140,7 +166,7 @@ function joinBtn(){me.name=nmVal();code=($('#rc').value||'').trim().toUpperCase(
   err='';busy=true;render();peer=new Peer();
   peer.on('open',id=>{me.id=id;hc=peer.connect(PFX+code,{reliable:true});
     hc.on('open',()=>hc.send({t:'hello',name:me.name}));
-    hc.on('data',m=>{if(m.t==='st'){busy=false;S=m.s;render()}else if(m.t==='splat')splat(m);
+    hc.on('data',m=>{if(m.t==='st'){busy=false;S=m.s;render()}else if(m.t==='splat')splat(m);else if(m.t==='emo')floatEmo(m);
       else if(m.t==='full'){busy=false;err='That room is full or already started';S=null;render()}});
     hc.on('close',()=>{busy=false;err='Disconnected from the host';S=null;render()});
     setTimeout(()=>{if(!S&&busy){busy=false;err='Could not reach that room. Check the code and try again.';render()}},9000)});
@@ -152,7 +178,7 @@ setInterval(()=>{if(S&&!isHost&&hc&&hc.open&&(S.phase==='spam'||S.phase==='colle
 /* ---------- INPUT ---------- */
 function press(side){
   if(!S||S.phase!=='spam'||!inMatch(me.id)||side===loc.last)return;
-  loc.last=side;loc.score++;const e=$('#sc');if(e)e.textContent=loc.score;
+  loc.last=side;loc.score++;const e=$('#sc');if(e&&!S.mod.blind)e.textContent=loc.score;const f=$('#myf svg');if(f)f.setAttribute('class','f big '+(side==='L'?'pL':'pR'));
 }
 addEventListener('keydown',e=>{if(e.repeat||(e.target.tagName==='INPUT'))return;const k=e.key.toLowerCase();
   if(k==='a'||k==='arrowleft'){press('L');e.preventDefault()}else if(k==='d'||k==='arrowright'){press('R');e.preventDefault()}});
@@ -162,6 +188,22 @@ function splat(m){if(!S)return;toast('\u{1F345} '+dn(m.from)+' splatted '+dn(m.t
     b.style.left=Math.random()*70+'%';b.style.top=Math.random()*70+'%';w.appendChild(b)}setTimeout(()=>w.innerHTML='',1800)}}
 function copyLink(){const l=location.origin+location.pathname+'?room='+code;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast('Invite link copied'),()=>prompt('Copy this invite link',l))}
 
+const hue=id=>{let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))%360;return h};
+const FACES=['😤','😠','🤪','😎','🤨','😡','🥴','😬','🤓','😈'];
+function fighter(id,s,big){const h=hue(id);
+  return `<svg class="f ${big?'big':''} ${s>0?(s%2?'pL':'pR'):'idle'}" viewBox="0 0 48 52"><rect x="14" y="27" width="20" height="19" rx="5" fill="hsl(${h} 70% 50%)"/><rect x="15" y="44" width="7" height="8" fill="#1a1a2e"/><rect x="26" y="44" width="7" height="8" fill="#1a1a2e"/><circle cx="24" cy="15" r="13" fill="#f2c9a0" stroke="#0a1030" stroke-width="2"/><text x="24" y="21" font-size="16" text-anchor="middle">${FACES[h%FACES.length]}</text><circle class="gl" cx="9" cy="34" r="7" fill="#e8392f" stroke="#0a1030" stroke-width="2"/><circle class="gr" cx="39" cy="34" r="7" fill="#2f7bff" stroke="#0a1030" stroke-width="2"/></svg>`}
+const EMOBAR='<div class="emo">'+EMOS.map(e=>`<button class="ghost sm" onclick="sendEmo('${e}')">${e}</button>`).join('')+'</div>';
+function sendEmo(e){isHost?emo(me.id,e):hc&&hc.open&&hc.send({t:'emo',e})}
+function floatEmo(m){const d=document.createElement('span');d.className='fe';d.textContent=m.e;d.style.left=(8+Math.random()*80)+'%';document.body.appendChild(d);setTimeout(()=>d.remove(),2100)}
+const chatHTML=()=>`<div class="card"><h2>Lounge</h2><div class="chat">${(S.chat||[]).map(c=>`<div><b>${dn(c.id)}:</b> ${esc(c.x)}</div>`).join('')||'Say something to the room.'}</div><div class="row"><input id="ci" maxlength="80" placeholder="Trash talk..." onkeydown="if(event.key==='Enter')sendChat()" style="margin:0"><button class="ghost" style="flex:none" onclick="sendChat()">Send</button></div></div>`;
+function sendChat(){const i=$('#ci'),x=i.value.trim();if(!x)return;i.value='';isHost?chat(me.id,x):hc&&hc.open&&hc.send({t:'chat',x})}
+let wu={n:0,best:0,run:0};
+const warmHTML=()=>`<div class="card"><h2>Warm-up bag</h2><p style="margin:0 0 10px">Hit the bag for 5 seconds. Best: <b id="wb">${wu.best}</b></p><button id="bag" class="bag" onclick="hitBag()">🥊<span id="wn">${wu.n}</span></button></div>`;
+function hitBag(){if(!wu.run){wu.run=1;wu.n=0;setTimeout(()=>{wu.run=0;if(wu.n>wu.best)wu.best=wu.n;const b=$('#wb');if(b)b.textContent=wu.best;toast('Warm-up: '+wu.n+' hits')},5000)}
+  wu.n++;const e=$('#wn'),b=$('#bag');if(e)e.textContent=wu.n;if(b){b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit')}}
+function confetti(){const c=['#e8392f','#2f7bff','#f5c542','#f6efe0'];for(let i=0;i<60;i++){const e=document.createElement('i');e.className='cf';e.style.cssText=`left:${Math.random()*100}%;background:${c[i%4]};animation-delay:${Math.random()*.8}s;animation-duration:${2+Math.random()*2}s`;document.body.appendChild(e);setTimeout(()=>e.remove(),5000)}}
+function star(){if(!S||S.phase!=='spam')return;const b=document.createElement('button');b.className='star';b.textContent='⭐';b.style.left=(8+Math.random()*70)+'%';b.style.top=(30+Math.random()*40)+'%';
+  b.onpointerdown=e=>{e.preventDefault();loc.score+=6;const x=$('#sc');if(x&&!S.mod.blind)x.textContent=loc.score;b.remove();toast('Star bonus +6')};document.body.appendChild(b);setTimeout(()=>b.remove(),1300)}
 /* ---------- VIEWS ---------- */
 function homeHTML(){return `<h1>SPAM<br>ROYALE</h1><p>Mash A and D (or tap the buttons) faster than your opponent. Win your match, survive the bracket, take the belt. Up to 10 players.</p>
 <div class="card"><input id="nm" placeholder="Your name" maxlength="14" value="${esc(me.name)}" autocomplete="off">
@@ -175,37 +217,37 @@ function lobbyHTML(){const n=S.players.length;
 <div class="row"><button class="ghost" onclick="copyLink()">Copy invite link</button></div></div>
 <div class="card"><h2>Fighters ${n}/${MAX}</h2>${S.players.map(p=>`<div class="pl"><span>${dn(p.id)}${p.id===me.id?' (you)':''}</span><small>${p.wins} win${p.wins===1?'':'s'} &middot; ${p.coins} coins</small></div>`).join('')}</div>
 ${isHost?`<div class="row"><button class="ghost" onclick="addBot()" ${n>=MAX?'disabled':''}>Add a bot</button><button class="gold" onclick="startT()" ${n<2?'disabled':''}>Start tournament</button></div>${n<2?'<p style="margin-top:10px">Share the code or add a bot to start.</p>':''}`
-:'<p>Waiting for the host to start the tournament...</p>'}`}
-function topHTML(){return `<div class="top"><span class="big">${S.rname}</span><span>${S.alive.length} left</span><span>${P(me.id).coins} coins</span></div>`}
+:'<p>Waiting for the host to start the tournament...</p>'}${warmHTML()}${chatHTML()}`}
+function topHTML(){return `<div class="stage"><small>${S.mod.n}: ${S.mod.d2}</small><div class="big">${S.rname}</div></div><div class="top"><span>Round ${S.round}</span><span>${S.alive.length} left</span><span>${P(me.id).coins} coins</span></div>`}
 function boardHTML(){
-  const sp=S.phase==='spam',br=S.phase==='bracket',spec=!inMatch(me.id),showS=['spam','collect','tally'].includes(S.phase);
+  const sp=S.phase==='spam',br=S.phase==='bracket',spec=!inMatch(me.id),showS=['spam','collect','tally'].includes(S.phase)&&!(S.mod.blind&&sp);
   const btn=id=>spec&&sp&&S.alive.includes(id)?`<button class="sm red" onclick="act('sab','${id}')">Tomato ${SAB}</button>`
     :spec&&br?`<button class="sm ${S.bets[me.id]===id?'on':''}" onclick="act('bet','${id}')">${S.bets[me.id]===id?'Bet placed':'Bet '+BET}</button>`:'';
-  let h=S.matches.map(m=>{const side=(id,s)=>`<div class="side ${m.w===id?'win':''} ${m.w&&m.w!==id?'lose':''} ${id===me.id?'me':''}"><div class="nm">${dn(id)}${P(id).gone?' (left)':''}</div><div class="pts">${showS?s:''}${btn(id)}</div><div class="bar"><i style="width:${Math.min(100,s*2)}%"></i></div></div>`;
+  let h=S.matches.map(m=>{const side=(id,s)=>`<div class="side ${m.w===id?'win':''} ${m.w&&m.w!==id?'lose':''} ${id===me.id?'me':''}">${fighter(id,s)}<div class="nm">${dn(id)}${P(id).gone?' (left)':''}</div><div class="pts">${showS?s:''}${btn(id)}</div><div class="bar"><i style="width:${showS?Math.min(100,s*2):0}%"></i></div></div>`;
     return `<div class="m ${m.a===me.id||m.b===me.id?'mine':''}">${side(m.a,m.sa)}${side(m.b,m.sb)}${m.tie?'<div class="tie">Photo finish. Coin flip decided it.</div>':''}</div>`}).join('');
   h+=S.byes.map(id=>`<div class="bye"><span>${dn(id)} <small>(bye, advances)</small></span>${btn(id)}</div>`).join('');
   return h}
 function padHTML(mine){const ph=S.phase;
   if(mine&&ph==='countdown')return '<div class="cd" id="cd">3</div><div class="hint">Alternate A and D (or tap left and right)</div>';
-  if(mine&&ph==='spam')return `<div class="score" id="sc">${loc.score}</div><div class="tl"><i id="tl"></i></div><div class="btns"><button class="red" id="bl">A</button><button id="br">D</button></div>`;
+  if(mine&&ph==='spam')return `<div id="myf">${fighter(me.id,0,1)}</div><div class="score" id="sc">${S.mod.blind?'?':loc.score}</div><div class="tl"><i id="tl"></i></div><div class="btns"><button class="red" id="bl">A</button><button id="br">D</button></div>`;
   if(mine&&(ph==='collect'||ph==='tally'))return `<div class="score">${loc.score}</div><div class="hint">${ph==='collect'?'Time! Counting...':'Final count'}</div>`;
   if(mine&&ph==='bracket')return '<div class="hint">Get ready. Your match is up next.</div>';
   if(ph==='bracket')return `<div class="hint">You're spectating. Bet ${BET} coins on who wins it all. Win pays ${BET*3}.</div>`;
   if(ph==='spam')return `<div class="hint">Throw a tomato at a fighter for ${SAB} coins.</div>`;
   return ''}
 function endHTML(){const w=S.champ,rank=[...S.players].sort((a,b)=>b.wins-a.wins);
-  return `<div class="card champ"><div class="big" style="font-size:60px">\u{1F3C6}</div><p style="margin:0">Champion</p><div class="big">${dn(w)}</div>
+  return `<div class="card champ">${fighter(w,99,1)}<div class="big" style="font-size:44px">\u{1F3C6}</div><p style="margin:0">Champion</p><div class="big">${dn(w)}</div>
 ${S.won&&S.won.length?`<p style="margin-top:12px">Correct bets: ${S.won.map(dn).join(', ')} (+${BET*3} each)</p>`:''}</div>
 <div class="card"><h2>Wins</h2>${rank.map(p=>`<div class="pl"><span>${dn(p.id)}</span><small>${p.wins} &middot; ${p.coins} coins</small></div>`).join('')}</div>
+${chatHTML()}${EMOBAR}
 ${isHost?'<button class="gold" style="width:100%" onclick="backToLobby()">Back to lobby</button>':'<p>Waiting for the host to reopen the lobby...</p>'}`}
 
 function render(){
   const app=$('#app');
   if(!S){padKey='';app.innerHTML=homeHTML();return}
-  if(S.phase!==lastPh){lastPh=S.phase;phAt=performance.now();if(S.phase==='countdown'){loc.score=0;loc.last=null}}
-  if(S.phase==='lobby'){padKey='';app.innerHTML=lobbyHTML();return}
-  if(S.phase==='end'){padKey='';app.innerHTML=endHTML();return}
-  if(!$('#board')){app.innerHTML='<div id="top"></div><div id="board"></div><div id="pad"></div>';padKey=''}
+  if(S.phase!==lastPh){lastPh=S.phase;phAt=performance.now();if(S.phase==='countdown'){loc.score=0;loc.last=null}if(S.phase==='end')confetti();if(S.phase==='spam'&&inMatch(me.id)){const d=S.mod.d*1000;[.2,.6].forEach(f=>setTimeout(star,d*f+Math.random()*d*.15))}}
+  if(S.phase==='lobby'||S.phase==='end'){padKey='';const c=$('#ci'),v=c?c.value:'',f=c&&document.activeElement===c;app.innerHTML=S.phase==='end'?endHTML():lobbyHTML();const n=$('#ci');if(n){n.value=v;if(f)n.focus()}return}
+  if(!$('#board')){app.innerHTML='<div id="top"></div><div id="board"></div><div id="pad"></div>'+EMOBAR;padKey=''}
   $('#top').innerHTML=topHTML();$('#board').innerHTML=boardHTML();
   const mine=inMatch(me.id),key=S.phase+mine;
   if(key!==padKey){padKey=key;$('#pad').innerHTML=padHTML(mine);
@@ -214,7 +256,7 @@ function render(){
 }
 setInterval(()=>{if(!S)return;const t=performance.now()-phAt,cd=$('#cd'),tl=$('#tl');
   if(cd){const n=3-Math.floor(t/1000);cd.textContent=n>0?n:'GO!'}
-  if(tl)tl.style.width=Math.max(0,100-t/50)+'%'},80);
+  if(tl)tl.style.width=Math.max(0,100-t/(S.mod.d*10))+'%'},80);
 render();
 </script>
 </body>
