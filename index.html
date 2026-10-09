@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Spam Royale</title>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#10173a;--ring:#1b2556;--red:#e8392f;--blue:#2f7bff;--gold:#f5c542;--paper:#f6efe0;--mut:#9aa6d6}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:repeating-linear-gradient(90deg,#10173a 0 46px,#121b42 46px 92px);color:var(--paper);font-family:'Chakra Petch',system-ui,sans-serif;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);-webkit-user-select:none;user-select:none}
+#app{max-width:640px;margin:0 auto;padding:14px 0 40px}
+.big,h1,h2,button{font-family:Bungee,Impact,sans-serif;font-weight:400}
+h1{font-size:clamp(52px,16vw,92px);line-height:.88;margin:18px 0 8px;color:var(--gold);text-shadow:4px 4px 0 var(--red)}
+h2{font-size:22px;margin:0 0 10px}
+p{color:var(--mut);margin:0 0 14px}
+.card{background:var(--ring);border:3px solid var(--paper);border-radius:6px;padding:16px;margin-bottom:14px;box-shadow:6px 6px 0 #0006}
+input{width:100%;font:700 18px 'Chakra Petch',sans-serif;padding:12px;border:3px solid var(--paper);background:var(--bg);color:var(--paper);border-radius:4px;margin-bottom:10px;-webkit-user-select:text;user-select:text}
+input:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button{cursor:pointer;border:0;border-radius:4px;padding:13px 16px;font-size:16px;color:#fff;background:var(--blue);touch-action:manipulation;box-shadow:0 4px 0 #0008}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #0008}
+button.red{background:var(--red)}button.gold{background:var(--gold);color:#1a1200}button.ghost{background:#2b3770}
+button:disabled{opacity:.4}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1}
+.or{text-align:center;color:var(--mut);margin:12px 0}
+.err{color:#ff8b82;font-weight:700;margin-top:8px}
+.code{font-size:56px;letter-spacing:6px;color:var(--gold);text-align:center;margin:4px 0}
+.pl{display:flex;justify-content:space-between;padding:9px 4px;border-bottom:2px dashed #ffffff22;font-weight:700}
+.pl small{color:var(--mut);font-weight:500}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;font-weight:700}
+.top .big{font-size:22px;color:var(--gold)}
+.m{background:var(--ring);border:3px solid var(--paper);border-radius:6px;margin-bottom:10px;overflow:hidden}
+.m.mine{border-color:var(--gold);box-shadow:0 0 0 3px #f5c54255}
+.side{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:8px 12px;position:relative}
+.side+.side{border-top:3px solid var(--bg)}
+.side .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side .pts{font:22px Bungee,Impact,sans-serif;text-align:right;display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.bar{grid-column:1/3;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--red);transition:width .25s}
+.side:nth-child(2) .bar i{background:var(--blue)}
+.side.win{background:#f5c54226}.side.win .nm::before{content:"\1F451 "}
+.side.lose{opacity:.45}
+.side.me .nm{color:var(--gold)}
+.sm{padding:6px 9px;font-size:12px}
+.sm.on{background:var(--gold);color:#1a1200}
+.bye{padding:8px 12px;border:3px dashed var(--mut);border-radius:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tie{font-size:12px;color:var(--gold);padding:0 12px 8px}
+#pad{margin-top:14px;text-align:center}
+.cd{font:120px/1 Bungee,Impact,sans-serif;color:var(--gold);text-shadow:5px 5px 0 var(--red)}
+.score{font:84px/1 Bungee,Impact,sans-serif;color:var(--paper)}
+.tl{height:10px;background:var(--bg);border-radius:5px;margin:10px 0 16px;overflow:hidden}.tl i{display:block;height:100%;background:var(--gold);width:100%}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btns button{height:150px;font-size:64px;border-radius:10px}
+.hint{color:var(--mut);font-weight:700}
+.champ{text-align:center;padding:24px 10px}
+.champ .big{font-size:30px;color:var(--gold);word-break:break-word}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--paper);color:#1a1200;padding:10px 16px;border-radius:6px;font-weight:700;z-index:9;max-width:92vw;text-align:center}
+#splat{position:fixed;inset:0;z-index:8;pointer-events:none;overflow:hidden}
+#splat b{position:absolute;font-size:150px;line-height:1;filter:drop-shadow(0 0 6px #7a0d05);animation:sp .25s ease-out}
+@keyframes sp{from{transform:scale(2.5);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){#splat b{animation:none}.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="splat"></div>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const PFX='spamroyale-gh-',MAX=10,BET=25,SAB=10;
+const TITLES=['Grandmaster Spammer','Carpal Tunnel King','Finger of Fury','Button Basher','Thumb Lord','Mash Messiah'];
+const BOTS=['Botty McMash','Clickatron','NPC Nick','Turbo Tim','Gizmo','Sir Taps-a-Lot','Mashbot 9000','Dave'];
+const $=s=>document.querySelector(s);
+let peer,isHost=false,hc=null,conns={},S=null,me={id:null,name:''},loc={score:0,last:null},err='',busy=false,lastPh='',phAt=0,padKey='',timers=[],iv=0;
+let code=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const P=id=>S.players.find(p=>p.id===id)||{name:'?',coins:0};
+const dn=id=>{const p=P(id);return(p.title?'['+esc(p.title)+'] ':'')+esc(p.name)};
+const shuffle=a=>{a=[...a];let i=a.length;while(i>1){const j=Math.floor(Math.random()*i--);[a[i],a[j]]=[a[j],a[i]]}return a};
+const inMatch=id=>S.matches.some(m=>m.a===id||m.b===id);
+const at=(f,ms)=>timers.push(setTimeout(f,ms));
+const nmVal=()=>(($('#nm')&&$('#nm').value.trim())||'Player'+Math.floor(Math.random()*99)).slice(0,14);
+
+/* ---------- HOST (authoritative) ---------- */
+function hostBtn(){me.name=nmVal();hostGame()}
+function hostGame(){
+  code=Math.random().toString(36).slice(2,6).toUpperCase();busy=true;err='';render();
+  peer=new Peer(PFX+code);
+  peer.on('open',id=>{isHost=true;busy=false;me.id=id;
+    S={phase:'lobby',round:0,players:[{id,name:me.name,coins:100,wins:0,title:''}],matches:[],byes:[],alive:[],bets:{},champ:null};bc()});
+  peer.on('error',e=>{if(e.type==='unavailable-id'){peer.destroy();hostGame()}else{busy=false;err='Connection problem: '+e.type;render()}});
+  peer.on('connection',c=>{c.on('data',m=>hmsg(c,m));c.on('close',()=>drop(c.peer))});
+}
+function bc(){for(const k in conns)if(conns[k].open)conns[k].send({t:'st',s:S});render()}
+function hmsg(c,m){const id=c.peer;
+  if(m.t==='hello'){
+    if(S.players.length>=MAX||S.phase!=='lobby'){c.send({t:'full'});setTimeout(()=>c.close(),400);return}
+    conns[id]=c;S.players.push({id,name:String(m.name||'Player').slice(0,14),coins:100,wins:0,title:''});bc();
+  }else if(!conns[id])return;
+  else if(m.t==='sc')setSc(id,m.n);
+  else if(m.t==='bet')bet(id,m.target);
+  else if(m.t==='sab')sab(id,m.target);
+}
+function drop(id){delete conns[id];if(!S)return;if(S.phase==='lobby')S.players=S.players.filter(p=>p.id!==id);else P(id).gone=true;bc()}
+function setSc(id,n){if(S.phase!=='spam'&&S.phase!=='collect')return;n=Math.min(Math.max(+n||0,0),250);
+  S.matches.forEach(m=>{if(m.a===id)m.sa=n;if(m.b===id)m.sb=n})}
+function bet(id,t){if(S.phase!=='bracket'||inMatch(id)||!S.alive.includes(t))return;const p=P(id),old=S.bets[id];
+  if(old){p.coins+=BET;delete S.bets[id];if(old===t){bc();return}}
+  if(p.coins>=BET){p.coins-=BET;S.bets[id]=t}bc()}
+function sab(id,t){if(S.phase!=='spam'||inMatch(id)||!inMatch(t))return;const p=P(id);if(p.coins<SAB)return;p.coins-=SAB;
+  const m={t:'splat',target:t,from:id};for(const k in conns)conns[k].open&&conns[k].send(m);splat(m);bc()}
+function addBot(){if(S.players.length>=MAX)return;const n=S.players.filter(p=>p.bot).length;
+  S.players.push({id:'bot'+Date.now(),name:BOTS[n%BOTS.length],coins:100,wins:0,title:'',bot:1});bc()}
+function startT(){S.players=S.players.filter(p=>!p.gone);if(S.players.length<2)return;
+  S.players.forEach(p=>p.coins=Math.max(p.coins,100));S.alive=S.players.map(p=>p.id);S.bets={};S.round=0;S.champ=null;nextRound()}
+function nextRound(){
+  S.round++;const a=shuffle(S.alive);S.matches=[];S.byes=[];
+  for(let i=0;i<a.length;i+=2)a[i+1]?S.matches.push({a:a[i],b:a[i+1],sa:0,sb:0,w:null}):S.byes.push(a[i]);
+  S.alive=a;S.rname=a.length===2?'GRAND FINAL':a.length<=4?'SEMIFINALS':'ROUND '+S.round;S.phase='bracket';bc();
+  at(()=>{S.phase='countdown';bc();
+    at(()=>{S.phase='spam';const t0=Date.now();S.players.forEach(p=>{if(p.bot)p.target=28+Math.floor(Math.random()*22)});bc();
+      iv=setInterval(()=>{setSc(me.id,loc.score);S.players.forEach(p=>{if(p.bot)setSc(p.id,Math.round(p.target*Math.min(1,(Date.now()-t0)/5000)))});bc()},250);
+      at(()=>{clearInterval(iv);S.phase='collect';bc();at(resolve,900)},5000)},3200)},a.length===2?8000:4500);
+}
+function resolve(){
+  setSc(me.id,loc.score);const win=[];
+  S.matches.forEach(m=>{if(m.sa===m.sb){m.tie=1;m.w=Math.random()<.5?m.a:m.b}else m.w=m.sa>m.sb?m.a:m.b;win.push(m.w)});
+  S.alive=[...S.byes,...win];S.phase='tally';bc();
+  at(()=>S.alive.length===1?finish():nextRound(),5000);
+}
+function finish(){
+  const id=S.alive[0],p=P(id);p.wins++;p.title=TITLES[Math.floor(Math.random()*TITLES.length)];S.champ=id;S.won=[];
+  for(const b in S.bets)if(S.bets[b]===id){P(b).coins+=BET*3;S.won.push(b)}
+  S.phase='end';bc();
+}
+function backToLobby(){S.phase='lobby';S.matches=[];S.byes=[];S.bets={};S.champ=null;S.players=S.players.filter(p=>!p.gone);bc()}
+
+/* ---------- GUEST ---------- */
+function joinBtn(){me.name=nmVal();code=($('#rc').value||'').trim().toUpperCase();if(code.length<4){err='Enter the 4-letter room code';render();return}
+  err='';busy=true;render();peer=new Peer();
+  peer.on('open',id=>{me.id=id;hc=peer.connect(PFX+code,{reliable:true});
+    hc.on('open',()=>hc.send({t:'hello',name:me.name}));
+    hc.on('data',m=>{if(m.t==='st'){busy=false;S=m.s;render()}else if(m.t==='splat')splat(m);
+      else if(m.t==='full'){busy=false;err='That room is full or already started';S=null;render()}});
+    hc.on('close',()=>{busy=false;err='Disconnected from the host';S=null;render()});
+    setTimeout(()=>{if(!S&&busy){busy=false;err='Could not reach that room. Check the code and try again.';render()}},9000)});
+  peer.on('error',e=>{busy=false;err=e.type==='peer-unavailable'?'No room with that code':'Connection problem: '+e.type;render()});
+}
+function act(k,t){if(isHost)(k==='bet'?bet:sab)(me.id,t);else if(hc&&hc.open)hc.send({t:k,target:t})}
+setInterval(()=>{if(S&&!isHost&&hc&&hc.open&&(S.phase==='spam'||S.phase==='collect')&&inMatch(me.id))hc.send({t:'sc',n:loc.score})},150);
+
+/* ---------- INPUT ---------- */
+function press(side){
+  if(!S||S.phase!=='spam'||!inMatch(me.id)||side===loc.last)return;
+  loc.last=side;loc.score++;const e=$('#sc');if(e)e.textContent=loc.score;
+}
+addEventListener('keydown',e=>{if(e.repeat||(e.target.tagName==='INPUT'))return;const k=e.key.toLowerCase();
+  if(k==='a'||k==='arrowleft'){press('L');e.preventDefault()}else if(k==='d'||k==='arrowright'){press('R');e.preventDefault()}});
+function toast(t){const d=document.createElement('div');d.className='toast';d.innerHTML=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+function splat(m){if(!S)return;toast('\u{1F345} '+dn(m.from)+' splatted '+dn(m.target));
+  if(m.target===me.id){const w=$('#splat');for(let i=0;i<4;i++){const b=document.createElement('b');b.textContent='\u{1F345}';
+    b.style.left=Math.random()*70+'%';b.style.top=Math.random()*70+'%';w.appendChild(b)}setTimeout(()=>w.innerHTML='',1800)}}
+function copyLink(){const l=location.origin+location.pathname+'?room='+code;(navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(()=>toast('Invite link copied'),()=>prompt('Copy this invite link',l))}
+
+/* ---------- VIEWS ---------- */
+function homeHTML(){return `<h1>SPAM<br>ROYALE</h1><p>Mash A and D (or tap the buttons) faster than your opponent. Win your match, survive the bracket, take the belt. Up to 10 players.</p>
+<div class="card"><input id="nm" placeholder="Your name" maxlength="14" value="${esc(me.name)}" autocomplete="off">
+<button class="red" style="width:100%" onclick="hostBtn()" ${busy?'disabled':''}>Host a tournament</button>
+<div class="or">or join a friend's room</div>
+<input id="rc" placeholder="Room code" maxlength="4" value="${esc(code)}" autocomplete="off" style="text-transform:uppercase">
+<button style="width:100%" onclick="joinBtn()" ${busy?'disabled':''}>${busy?'Connecting...':'Join room'}</button>
+${err?`<div class="err">${esc(err)}</div>`:''}</div>`}
+function lobbyHTML(){const n=S.players.length;
+  return `<h2>Lobby</h2><div class="card"><p style="margin:0;text-align:center">Room code</p><div class="code big">${esc(code)}</div>
+<div class="row"><button class="ghost" onclick="copyLink()">Copy invite link</button></div></div>
+<div class="card"><h2>Fighters ${n}/${MAX}</h2>${S.players.map(p=>`<div class="pl"><span>${dn(p.id)}${p.id===me.id?' (you)':''}</span><small>${p.wins} win${p.wins===1?'':'s'} &middot; ${p.coins} coins</small></div>`).join('')}</div>
+${isHost?`<div class="row"><button class="ghost" onclick="addBot()" ${n>=MAX?'disabled':''}>Add a bot</button><button class="gold" onclick="startT()" ${n<2?'disabled':''}>Start tournament</button></div>${n<2?'<p style="margin-top:10px">Share the code or add a bot to start.</p>':''}`
+:'<p>Waiting for the host to start the tournament...</p>'}`}
+function topHTML(){return `<div class="top"><span class="big">${S.rname}</span><span>${S.alive.length} left</span><span>${P(me.id).coins} coins</span></div>`}
+function boardHTML(){
+  const sp=S.phase==='spam',br=S.phase==='bracket',spec=!inMatch(me.id),showS=['spam','collect','tally'].includes(S.phase);
+  const btn=id=>spec&&sp&&S.alive.includes(id)?`<button class="sm red" onclick="act('sab','${id}')">Tomato ${SAB}</button>`
+    :spec&&br?`<button class="sm ${S.bets[me.id]===id?'on':''}" onclick="act('bet','${id}')">${S.bets[me.id]===id?'Bet placed':'Bet '+BET}</button>`:'';
+  let h=S.matches.map(m=>{const side=(id,s)=>`<div class="side ${m.w===id?'win':''} ${m.w&&m.w!==id?'lose':''} ${id===me.id?'me':''}"><div class="nm">${dn(id)}${P(id).gone?' (left)':''}</div><div class="pts">${showS?s:''}${btn(id)}</div><div class="bar"><i style="width:${Math.min(100,s*2)}%"></i></div></div>`;
+    return `<div class="m ${m.a===me.id||m.b===me.id?'mine':''}">${side(m.a,m.sa)}${side(m.b,m.sb)}${m.tie?'<div class="tie">Photo finish. Coin flip decided it.</div>':''}</div>`}).join('');
+  h+=S.byes.map(id=>`<div class="bye"><span>${dn(id)} <small>(bye, advances)</small></span>${btn(id)}</div>`).join('');
+  return h}
+function padHTML(mine){const ph=S.phase;
+  if(mine&&ph==='countdown')return '<div class="cd" id="cd">3</div><div class="hint">Alternate A and D (or tap left and right)</div>';
+  if(mine&&ph==='spam')return `<div class="score" id="sc">${loc.score}</div><div class="tl"><i id="tl"></i></div><div class="btns"><button class="red" id="bl">A</button><button id="br">D</button></div>`;
+  if(mine&&(ph==='collect'||ph==='tally'))return `<div class="score">${loc.score}</div><div class="hint">${ph==='collect'?'Time! Counting...':'Final count'}</div>`;
+  if(mine&&ph==='bracket')return '<div class="hint">Get ready. Your match is up next.</div>';
+  if(ph==='bracket')return `<div class="hint">You're spectating. Bet ${BET} coins on who wins it all. Win pays ${BET*3}.</div>`;
+  if(ph==='spam')return `<div class="hint">Throw a tomato at a fighter for ${SAB} coins.</div>`;
+  return ''}
+function endHTML(){const w=S.champ,rank=[...S.players].sort((a,b)=>b.wins-a.wins);
+  return `<div class="card champ"><div class="big" style="font-size:60px">\u{1F3C6}</div><p style="margin:0">Champion</p><div class="big">${dn(w)}</div>
+${S.won&&S.won.length?`<p style="margin-top:12px">Correct bets: ${S.won.map(dn).join(', ')} (+${BET*3} each)</p>`:''}</div>
+<div class="card"><h2>Wins</h2>${rank.map(p=>`<div class="pl"><span>${dn(p.id)}</span><small>${p.wins} &middot; ${p.coins} coins</small></div>`).join('')}</div>
+${isHost?'<button class="gold" style="width:100%" onclick="backToLobby()">Back to lobby</button>':'<p>Waiting for the host to reopen the lobby...</p>'}`}
+
+function render(){
+  const app=$('#app');
+  if(!S){padKey='';app.innerHTML=homeHTML();return}
+  if(S.phase!==lastPh){lastPh=S.phase;phAt=performance.now();if(S.phase==='countdown'){loc.score=0;loc.last=null}}
+  if(S.phase==='lobby'){padKey='';app.innerHTML=lobbyHTML();return}
+  if(S.phase==='end'){padKey='';app.innerHTML=endHTML();return}
+  if(!$('#board')){app.innerHTML='<div id="top"></div><div id="board"></div><div id="pad"></div>';padKey=''}
+  $('#top').innerHTML=topHTML();$('#board').innerHTML=boardHTML();
+  const mine=inMatch(me.id),key=S.phase+mine;
+  if(key!==padKey){padKey=key;$('#pad').innerHTML=padHTML(mine);
+    const l=$('#bl'),r=$('#br');
+    if(l){l.onpointerdown=e=>{e.preventDefault();press('L')};r.onpointerdown=e=>{e.preventDefault();press('R')}}}
+}
+setInterval(()=>{if(!S)return;const t=performance.now()-phAt,cd=$('#cd'),tl=$('#tl');
+  if(cd){const n=3-Math.floor(t/1000);cd.textContent=n>0?n:'GO!'}
+  if(tl)tl.style.width=Math.max(0,100-t/50)+'%'},80);
+render();
+</script>
+</body>
+</html>
