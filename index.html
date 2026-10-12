@@ -157,6 +157,7 @@ const EMOS=['🔥','👏','😂','💀','😱','🙌'];
 const DIRS=['W','A','S','D'],ARW={W:'⬆️',A:'⬅️',S:'⬇️',D:'➡️'},FLIP={W:'S',S:'W',A:'D',D:'A'};
 const TROLLS={tomato:{c:10,i:'🍅',n:'Tomato'},mirror:{c:25,i:'🔄',n:'Mirror'},fog:{c:15,i:'🌫️',n:'Fog'},rush:{c:20,i:'⏱️',n:'Panic'},horn:{c:10,i:'📯',n:'Air horn'},whisper:{c:15,i:'🗣️',n:'Fake tip'}};
 const $=s=>document.querySelector(s);
+const DBG=[],dbg=m=>{DBG.push(Math.round(performance.now()/1000)+'s '+m);if(DBG.length>14)DBG.shift()};
 let peer,isHost=false,hc=null,conns={},S=null,me={id:null,name:''},loc={pick:null,tt:null},err='',busy=false,lastPh='',dph={},timers=[];
 let code=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -257,14 +258,15 @@ function addBot(){if(S.players.length>=MAX)return;const n=S.players.filter(p=>p.
 /* ---------- GUEST ---------- */
 function joinBtn(){me.name=nmVal();code=($('#rc').value||'').trim().toUpperCase();if(code.length<4){err='Enter the 4-letter room code';render();return}
   err='';busy=true;render();if(peer)try{peer.destroy()}catch(_){}peer=new Peer(undefined,PCFG);
-  peer.on('open',id=>{me.id=id;hc=peer.connect(PFX+code,{reliable:true});
-    hc.on('open',()=>hc.send({t:'hello',name:me.name,look:me.look}));
-    hc.on('error',e=>{if(S)return;busy=false;err='Found the room but could not connect to the host ('+(e.type||'error')+'). Try again.';render()});
-    hc.on('data',m=>{if(m.t==='st'){busy=false;S=m.s;render()}else if(m.t==='fx')fx(m);else if(m.t==='emo')floatEmo(m);else if('sp,ps,th,ct'.includes(m.t))gmsg(m);
+  dbg('joining '+code);peer.on('open',id=>{dbg('reached PeerJS server');me.id=id;hc=peer.connect(PFX+code,{reliable:true});dbg('room found, opening connection');
+    hc.on('iceStateChanged',st=>dbg('network: '+st));
+    hc.on('open',()=>{dbg('connected to host, sent hello');hc.send({t:'hello',name:me.name,look:me.look})});
+    hc.on('error',e=>{dbg('connection error: '+(e.type||e));if(S)return;busy=false;err='Found the room but could not connect to the host ('+(e.type||'error')+'). Try again.';render()});
+    hc.on('data',m=>{if(m.t==='st'){dbg('got lobby from host');busy=false;S=m.s;render()}else if(m.t==='fx')fx(m);else if(m.t==='emo')floatEmo(m);else if('sp,ps,th,ct'.includes(m.t))gmsg(m);
       else if(m.t==='full'){busy=false;err=m.w==='started'?'That game has already started. Ask the host to go back to the lobby, then join.':'That room is full';S=null;render()}});
     hc.on('close',()=>{busy=false;err='Disconnected from the host';S=null;render()});
     setTimeout(()=>{if(!S&&busy){busy=false;err='Could not reach that room. Check the code and try again.';render()}},15000)});
-  peer.on('error',e=>{busy=false;err=e.type==='peer-unavailable'?'No room with that code':'Connection problem: '+e.type;render()});
+  peer.on('error',e=>{dbg('peer error: '+e.type);busy=false;err=e.type==='peer-unavailable'?'No room with that code':'Connection problem: '+e.type;render()});
 }
 const tell=m=>isHost?null:hc&&hc.open&&hc.send(m);
 function gmsg(m){if(m.t==='sp')onSp(m);
@@ -321,7 +323,7 @@ function homeHTML(){return `<h1>SHADOW<br>ROYALE</h1><p>Run, sneak and lob nets 
 <div class="or">or join a friend's room</div>
 <input id="rc" placeholder="Room code" maxlength="4" value="${esc(code)}" autocomplete="off" style="text-transform:uppercase">
 <button style="width:100%" onclick="joinBtn()" ${busy?'disabled':''}>${busy?'Connecting...':'Join room'}</button>
-${err?`<div class="err">${esc(err)}</div>`:''}</div><div id="edslot"></div>`}
+${err?`<div class="err">${esc(err)}</div>${DBG.length?`<pre style="font-size:11px;opacity:.7;white-space:pre-wrap;margin:6px 0 0">${esc(DBG.join('\n'))}</pre>`:''}`:''}</div><div id="edslot"></div>`}
 function lobbyHTML(){const n=S.players.length;
   return `<h2>Lobby</h2><div class="card"><p style="margin:0;text-align:center">Room code</p><div class="code big">${esc(code)}</div><div class="row"><button class="ghost" onclick="copyLink()">Copy invite link</button></div></div>
 <div class="card"><h2>Fighters ${n}/${MAX}</h2>${S.players.map(p=>`<div class="pl"><span class="pn">${fighter(p.id,null,null,'sm','L')}${dn(p.id)}${p.id===me.id?' (you)':''}</span><small>${p.wins} win${p.wins===1?'':'s'} &middot; ${p.coins} coins</small></div>`).join('')}</div>
