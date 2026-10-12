@@ -142,15 +142,42 @@ button{background-image:linear-gradient(#ffffff2e,#0000 55%)}
 <body>
 <div id="bg"></div><div id="app"></div>
 <div id="splat"></div>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 const PFX='shadowroyale-gh-',MAX=10;
-/* STUN finds public addresses; TURN relays when two networks can't connect directly (mobile data, school/office wifi, strict NATs).
-   The free openrelay servers are best-effort - for a reliable game, swap in your own TURN credentials (e.g. metered.ca or Cloudflare). */
-const PCFG={config:{iceServers:[
-  {urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:global.stun.twilio.com:3478']},
-  {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp','turns:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}
-],iceCandidatePoolSize:4}};
+/* ---------- relay transport: the few PeerJS calls the game uses, but all traffic goes through the server over WebSocket (works on school wifi) ---------- */
+const PCFG={};
+class RConn{constructor(P,id){this.P=P;this.peer=id;this.open=false;this.h={}}
+ on(e,f){this.h[e]=f}
+ _e(e,a){this.h[e]&&this.h[e](a)}
+ _open(){this.open=true;this._e('open')}
+ send(m){if(this.open)this.P._tx(this.P.host?{k:'d',to:this.peer,m}:{k:'d',m})}
+ close(){if(!this.open)return;this.open=false;this.P._tx(this.P.host?{k:'kick',to:this.peer}:{k:'leave'});this._e('close')}}
+class Peer{
+ constructor(id){this.h={};this.conns={};this.out=null;this.host=!!id;this.id=id||('g'+Math.random().toString(36).slice(2,10));this.destroyed=false;this.disconnected=false;this.opened=false;this._go()}
+ on(e,f){this.h[e]=f}
+ _e(e,a){this.h[e]&&this.h[e](a)}
+ _tx(o){if(this.ws&&this.ws.readyState===1)this.ws.send(JSON.stringify(o))}
+ _go(){const u=(window.RELAY_URL||((location.protocol==='https:'?'wss://':'ws://')+location.host))+'/ws';let ws;
+  try{ws=this.ws=new WebSocket(u)}catch(_){setTimeout(()=>this._e('error',{type:'network'}),0);return}
+  ws.onopen=()=>{this.disconnected=false;dbg('relay: connected');this._tx(this.host?{k:'reg',id:this.id}:{k:'hi',id:this.id})};
+  ws.onmessage=ev=>{if(ws!==this.ws)return;let m;try{m=JSON.parse(ev.data)}catch(_){return}this._rx(m)};
+  ws.onerror=()=>{};
+  ws.onclose=()=>{if(ws!==this.ws||this.destroyed)return;dbg('relay: connection closed');this.disconnected=true;
+   for(const k in this.conns){const c=this.conns[k];if(c.open){c.open=false;c._e('close')}}this.conns={};
+   if(this.out&&this.out.open){this.out.open=false;this.out._e('close')}
+   if(!this.opened)this._e('error',{type:'network'});else this._e('disconnected')}}
+ _rx(m){const k=m.k;
+  if(k==='ok'){if(!this.opened){this.opened=true;this._e('open',this.id)}}
+  else if(k==='taken'){if(this.opened)setTimeout(()=>this.reconnect(),3000);else this._e('error',{type:'unavailable-id'})}
+  else if(k==='peer'){const c=new RConn(this,m.id);this.conns[m.id]=c;this._e('connection',c);c._open()}
+  else if(k==='d'){const c=this.host?this.conns[m.from]:this.out;if(c)c._e('data',m.m)}
+  else if(k==='bye'){const c=this.conns[m.id];if(c&&c.open){c.open=false;c._e('close')}delete this.conns[m.id]}
+  else if(k==='joined'){if(this.out)this.out._open()}
+  else if(k==='nohost')this._e('error',{type:'peer-unavailable'})
+  else if(k==='closed'){if(this.out&&this.out.open){this.out.open=false;this.out._e('close')}}}
+ connect(id){const c=this.out=new RConn(this,id);this._tx({k:'join',room:id});return c}
+ reconnect(){if(this.destroyed)return;try{this.ws&&this.ws.close()}catch(_){}this._go()}
+ destroy(){this.destroyed=true;this.disconnected=true;try{this.ws&&this.ws.close()}catch(_){}}}
 const TITLES=['Grandmaster of Shadows','Carpal Tunnel King','Mind Reader','Gaze Gladiator','The Unreadable','Eye of the Storm'];
 const BOTS=['Botty McMash','Clickatron','NPC Nick','Turbo Tim','Gizmo','Sir Looks-a-Lot','Shadow 9000','Dave'];
 const EMOS=['🔥','👏','😂','💀','😱','🙌'];
@@ -174,7 +201,7 @@ const nmVal=()=>(($('#nm')&&$('#nm').value.trim())||'Player'+Math.floor(Math.ran
 /* ---------- HOST (authoritative) ---------- */
 function hostBtn(){me.name=nmVal();hostGame()}
 function hostGame(){
-  code=Math.random().toString(36).slice(2,6).toUpperCase();busy=true;err='';render();
+  code=Array.from({length:4},()=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*31)]).join('');busy=true;err='';render();
   peer=new Peer(PFX+code,PCFG);const pp=peer;
   /* if the host's link to the signalling server drops (tab idle, wifi blip) the room code stops resolving - reconnect until it's back */
   pp.on('disconnected',()=>{const rc=()=>{if(pp.destroyed||!pp.disconnected)return;try{pp.reconnect()}catch(_){}setTimeout(rc,3000)};setTimeout(rc,500)});
